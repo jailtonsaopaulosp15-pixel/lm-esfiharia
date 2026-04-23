@@ -1,0 +1,150 @@
+index.html<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LM Esfiharia</title>
+
+<style>
+body { font-family: Arial; margin: 0; background: #111; color: white; }
+header { text-align: center; padding: 20px; background: black; font-size: 28px; color: gold; }
+.container { padding: 15px; }
+.categoria { margin-top: 20px; font-size: 20px; color: orange; }
+.item {
+    background: #222;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+button { background: red; color: white; border: none; padding: 6px; border-radius: 5px; }
+.cart {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: black;
+    padding: 10px;
+}
+input, select {
+    width: 100%;
+    margin: 5px 0;
+    padding: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>LM Esfiharia</header>
+
+<div class="container" id="menu"></div>
+
+<div class="cart">
+<h3>Carrinho</h3>
+<div id="cartItems"></div>
+<p>Total: R$ <span id="total">0</span></p>
+
+<input type="text" id="nome" placeholder="Seu nome">
+<input type="text" id="telefone" placeholder="Telefone">
+<input type="text" id="endereco" placeholder="Endereço">
+
+<select id="pagamento">
+<option>Pix</option>
+<option>Cartão</option>
+<option>Dinheiro</option>
+</select>
+
+<button onclick="enviarPedido()">Finalizar Pedido</button>
+</div>
+
+<script>
+const numeroWhatsApp = "5516996055175";
+
+const cardapio = {
+"Premium": [
+["Costela",12],["Carne Seca",12],["Strogonoff de Carne",15],["Strogonoff de Frango",15],
+["Brócolis com Bacon",8.5],["Atum Acebolado",8],["Atum Cremoso",9],["Doritos",8],
+["Filé com Catupiry",10],["Pepperoni",8],["Calabresa Bacon Catupiry",8.5],
+["Toscana com Vinagrete",10],["Camarão",15]
+],
+"Tradicionais": [
+["Caipira",7.5],["Calabresa Acebolada",7],["Baiana",7],["Muçarela",7],
+["Napolitana",7],["Rúcula e Tomate Seco",7],["Marguerita",7],
+["Milho e Bacon",7.5],["Bacon",7],["4 Queijos",7],["5 Queijos",7.5],
+["Frango com Catupiry",7.5],["Carne",7],["Carne com Queijo",7.5],
+["Lombo com Catupiry",7.5],["Palmito",7]
+],
+"Doces": [
+["2 Amores",9],["Prestígio",8],["Nutella com Morango",10],
+["Banana",8],["Banana Nevada",9],["Churros",8],
+["Abacaxi",9],["Milho e Bacon Chocolate Branco",10],
+["Ferrero Rocher",9],["Sonho de Valsa",9],
+["Ouro Branco",9],["Paçoquita",9],["Oreo",8]
+]
+};
+
+let carrinho = [];
+
+function carregarMenu() {
+const menu = document.getElementById("menu");
+
+for (let categoria in cardapio) {
+menu.innerHTML += `<div class="categoria">${categoria}</div>`;
+
+cardapio[categoria].forEach((item, index) => {
+menu.innerHTML += `
+<div class="item">
+${item[0]} - R$ ${item[1]}
+<button onclick="addCarrinho('${categoria}', ${index})">+</button>
+</div>`;
+});
+}
+}
+
+function addCarrinho(cat, index) {
+const item = cardapio[cat][index];
+carrinho.push(item);
+atualizarCarrinho();
+}
+
+function atualizarCarrinho() {
+let lista = document.getElementById("cartItems");
+let totalEl = document.getElementById("total");
+
+lista.innerHTML = "";
+let total = 0;
+
+carrinho.forEach(item => {
+lista.innerHTML += `<p>${item[0]} - R$ ${item[1]}</p>`;
+total += item[1];
+});
+
+totalEl.innerText = total.toFixed(2);
+}
+
+function enviarPedido() {
+const nome = document.getElementById("nome").value;
+const telefone = document.getElementById("telefone").value;
+const endereco = document.getElementById("endereco").value;
+const pagamento = document.getElementById("pagamento").value;
+
+let msg = `Pedido - LM Esfiharia\n\n`;
+msg += `Nome: ${nome}\nTelefone: ${telefone}\nEndereço: ${endereco}\n\nItens:\n`;
+
+let total = 0;
+carrinho.forEach(item => {
+msg += `- ${item[0]} R$ ${item[1]}\n`;
+total += item[1];
+});
+
+msg += `\nTotal: R$ ${total.toFixed(2)}\nPagamento: ${pagamento}`;
+
+window.open(`https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(msg)}`);
+}
+
+carregarMenu();
+</script>
+
+</body>
+</html>
