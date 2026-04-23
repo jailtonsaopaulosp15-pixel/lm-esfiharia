@@ -1,4 +1,4 @@
-index.html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -6,48 +6,123 @@ index.html<!DOCTYPE html>
 <title>LM Esfiharia</title>
 
 <style>
-body { font-family: Arial; margin: 0; background: #111; color: white; }
-header { text-align: center; padding: 20px; background: black; font-size: 28px; color: gold; }
-.container { padding: 15px; }
-.categoria { margin-top: 20px; font-size: 20px; color: orange; }
-.item {
-    background: #222;
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
+body {
+    margin:0;
+    font-family: Arial;
+    background:#111;
+    color:white;
 }
-button { background: red; color: white; border: none; padding: 6px; border-radius: 5px; }
+
+/* TOPO */
+header {
+    background: linear-gradient(90deg,#ff0000,#ff9900);
+    padding:20px;
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+}
+
+/* CATEGORIA */
+.categoria {
+    margin:20px;
+    font-size:22px;
+    color:#ff9900;
+}
+
+/* CARD PRODUTO */
+.card {
+    display:flex;
+    align-items:center;
+    background:#1c1c1c;
+    margin:10px 15px;
+    padding:10px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.5);
+}
+
+.card img {
+    width:70px;
+    height:70px;
+    border-radius:10px;
+    margin-right:10px;
+}
+
+.info {
+    flex:1;
+}
+
+.preco {
+    color:#00ff88;
+    font-weight:bold;
+}
+
+/* QUANTIDADE */
+.qtd {
+    display:flex;
+    align-items:center;
+}
+
+.qtd button {
+    width:30px;
+    height:30px;
+    border:none;
+    background:#ff9900;
+    color:black;
+    font-weight:bold;
+    border-radius:5px;
+}
+
+.qtd span {
+    margin:0 8px;
+}
+
+/* CARRINHO */
 .cart {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: black;
-    padding: 10px;
+    position:fixed;
+    bottom:0;
+    width:100%;
+    background:#000;
+    padding:15px;
+    box-shadow:0 -2px 10px black;
 }
-input, select {
-    width: 100%;
-    margin: 5px 0;
-    padding: 8px;
+
+input {
+    width:100%;
+    padding:8px;
+    margin:5px 0;
+}
+
+.total {
+    font-size:18px;
+    margin:5px 0;
+}
+
+.whatsapp {
+    width:100%;
+    padding:12px;
+    background:#25D366;
+    border:none;
+    font-size:16px;
+    color:white;
+    border-radius:8px;
 }
 </style>
 </head>
 
 <body>
 
-<header>LM Esfiharia</header>
+<header>🔥 LM Esfiharia</header>
 
-<div class="container" id="menu"></div>
+<div id="menu"></div>
 
 <div class="cart">
-<h3>Carrinho</h3>
-<div id="cartItems"></div>
-<p>Total: R$ <span id="total">0</span></p>
+<div id="resumo"></div>
 
-<input type="text" id="nome" placeholder="Seu nome">
-<input type="text" id="telefone" placeholder="Telefone">
-<input type="text" id="endereco" placeholder="Endereço">
+<p>Taxa de entrega: R$ 5,00</p>
+<p class="total">Total: R$ <span id="total">0</span></p>
+
+<input id="nome" placeholder="Seu nome">
+<input id="endereco" placeholder="Endereço">
 
 <select id="pagamento">
 <option>Pix</option>
@@ -55,95 +130,96 @@ input, select {
 <option>Dinheiro</option>
 </select>
 
-<button onclick="enviarPedido()">Finalizar Pedido</button>
+<button class="whatsapp" onclick="enviarPedido()">Enviar Pedido no WhatsApp</button>
 </div>
 
 <script>
-const numeroWhatsApp = "5516996055175";
+const numero = "5516996055175";
+const taxa = 5;
 
-const cardapio = {
-"Premium": [
-["Costela",12],["Carne Seca",12],["Strogonoff de Carne",15],["Strogonoff de Frango",15],
-["Brócolis com Bacon",8.5],["Atum Acebolado",8],["Atum Cremoso",9],["Doritos",8],
-["Filé com Catupiry",10],["Pepperoni",8],["Calabresa Bacon Catupiry",8.5],
-["Toscana com Vinagrete",10],["Camarão",15]
-],
-"Tradicionais": [
-["Caipira",7.5],["Calabresa Acebolada",7],["Baiana",7],["Muçarela",7],
-["Napolitana",7],["Rúcula e Tomate Seco",7],["Marguerita",7],
-["Milho e Bacon",7.5],["Bacon",7],["4 Queijos",7],["5 Queijos",7.5],
-["Frango com Catupiry",7.5],["Carne",7],["Carne com Queijo",7.5],
-["Lombo com Catupiry",7.5],["Palmito",7]
-],
-"Doces": [
-["2 Amores",9],["Prestígio",8],["Nutella com Morango",10],
-["Banana",8],["Banana Nevada",9],["Churros",8],
-["Abacaxi",9],["Milho e Bacon Chocolate Branco",10],
-["Ferrero Rocher",9],["Sonho de Valsa",9],
-["Ouro Branco",9],["Paçoquita",9],["Oreo",8]
-]
-};
+const produtos = [
+{nome:"Costela", preco:12, img:"https://i.imgur.com/5KXcV7Y.jpg"},
+{nome:"Carne Seca", preco:12, img:"https://i.imgur.com/5KXcV7Y.jpg"},
+{nome:"Strogonoff", preco:15, img:"https://i.imgur.com/5KXcV7Y.jpg"},
+{nome:"Frango", preco:7.5, img:"https://i.imgur.com/5KXcV7Y.jpg"},
+{nome:"Calabresa", preco:7, img:"https://i.imgur.com/5KXcV7Y.jpg"},
+{nome:"Chocolate", preco:9, img:"https://i.imgur.com/5KXcV7Y.jpg"}
+];
 
-let carrinho = [];
+let carrinho = {};
 
-function carregarMenu() {
+function carregar(){
 const menu = document.getElementById("menu");
 
-for (let categoria in cardapio) {
-menu.innerHTML += `<div class="categoria">${categoria}</div>`;
-
-cardapio[categoria].forEach((item, index) => {
+produtos.forEach((p,i)=>{
 menu.innerHTML += `
-<div class="item">
-${item[0]} - R$ ${item[1]}
-<button onclick="addCarrinho('${categoria}', ${index})">+</button>
-</div>`;
+<div class="card">
+<img src="${p.img}">
+<div class="info">
+<b>${p.nome}</b><br>
+<span class="preco">R$ ${p.preco}</span>
+</div>
+
+<div class="qtd">
+<button onclick="menos(${i})">-</button>
+<span id="q${i}">0</span>
+<button onclick="mais(${i})">+</button>
+</div>
+</div>
+`;
 });
 }
+
+function mais(i){
+carrinho[i] = (carrinho[i] || 0) + 1;
+atualizar();
 }
 
-function addCarrinho(cat, index) {
-const item = cardapio[cat][index];
-carrinho.push(item);
-atualizarCarrinho();
+function menos(i){
+if(carrinho[i]){
+carrinho[i]--;
+}
+atualizar();
 }
 
-function atualizarCarrinho() {
-let lista = document.getElementById("cartItems");
-let totalEl = document.getElementById("total");
-
-lista.innerHTML = "";
+function atualizar(){
 let total = 0;
 
-carrinho.forEach(item => {
-lista.innerHTML += `<p>${item[0]} - R$ ${item[1]}</p>`;
-total += item[1];
-});
+for(let i in carrinho){
+let qtd = carrinho[i];
+document.getElementById("q"+i).innerText = qtd;
 
-totalEl.innerText = total.toFixed(2);
+total += produtos[i].preco * qtd;
 }
 
-function enviarPedido() {
-const nome = document.getElementById("nome").value;
-const telefone = document.getElementById("telefone").value;
-const endereco = document.getElementById("endereco").value;
-const pagamento = document.getElementById("pagamento").value;
+document.getElementById("total").innerText = (total + taxa).toFixed(2);
+}
 
-let msg = `Pedido - LM Esfiharia\n\n`;
-msg += `Nome: ${nome}\nTelefone: ${telefone}\nEndereço: ${endereco}\n\nItens:\n`;
+function enviarPedido(){
+let nome = document.getElementById("nome").value;
+let endereco = document.getElementById("endereco").value;
+let pagamento = document.getElementById("pagamento").value;
+
+let msg = `Pedido LM Esfiharia\n\n`;
+msg += `Nome: ${nome}\nEndereço: ${endereco}\n\n`;
 
 let total = 0;
-carrinho.forEach(item => {
-msg += `- ${item[0]} R$ ${item[1]}\n`;
-total += item[1];
-});
 
-msg += `\nTotal: R$ ${total.toFixed(2)}\nPagamento: ${pagamento}`;
-
-window.open(`https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(msg)}`);
+for(let i in carrinho){
+if(carrinho[i] > 0){
+msg += `${carrinho[i]}x ${produtos[i].nome}\n`;
+total += produtos[i].preco * carrinho[i];
+}
 }
 
-carregarMenu();
+msg += `\nTaxa: R$ ${taxa}`;
+msg += `\nTotal: R$ ${(total+taxa).toFixed(2)}`;
+msg += `\nPagamento: ${pagamento}`;
+
+window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`);
+}
+
+carregar();
 </script>
 
 </body>
