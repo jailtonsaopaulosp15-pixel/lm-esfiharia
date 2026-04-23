@@ -6,120 +6,118 @@
 <title>LM Esfiharia</title>
 
 <style>
-body {
-    margin:0;
-    font-family: Arial;
-    background:#111;
-    color:white;
+body {margin:0;font-family:Arial;background:#111;color:white;}
+header {position:fixed;top:0;width:100%;background:black;z-index:10;text-align:center;}
+header img {width:100%;max-height:160px;object-fit:cover;}
+
+.tabs {
+display:flex;
+justify-content:space-around;
+background:#222;
+padding:10px;
+position:sticky;
+top:160px;
+z-index:9;
+}
+.tabs button {
+background:none;
+border:none;
+color:white;
+font-size:14px;
 }
 
-/* TOPO */
-header {
-    background: linear-gradient(90deg,#ff0000,#ff9900);
-    padding:20px;
-    text-align:center;
-    font-size:28px;
-    font-weight:bold;
-}
+.container {margin-top:200px;padding-bottom:100px;}
 
-/* CATEGORIA */
-.categoria {
-    margin:20px;
-    font-size:22px;
-    color:#ff9900;
-}
-
-/* CARD PRODUTO */
 .card {
-    display:flex;
-    align-items:center;
-    background:#1c1c1c;
-    margin:10px 15px;
-    padding:10px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.5);
-}
-
-.card img {
-    width:70px;
-    height:70px;
-    border-radius:10px;
-    margin-right:10px;
-}
-
-.info {
-    flex:1;
-}
-
-.preco {
-    color:#00ff88;
-    font-weight:bold;
-}
-
-/* QUANTIDADE */
-.qtd {
-    display:flex;
-    align-items:center;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#1c1c1c;
+margin:10px;
+padding:12px;
+border-radius:10px;
 }
 
 .qtd button {
-    width:30px;
-    height:30px;
-    border:none;
-    background:#ff9900;
-    color:black;
-    font-weight:bold;
-    border-radius:5px;
+width:30px;height:30px;border:none;background:#ff9900;font-weight:bold;
 }
 
-.qtd span {
-    margin:0 8px;
+.floating {
+position:fixed;
+bottom:20px;
+right:20px;
+background:#25D366;
+padding:15px;
+border-radius:50%;
+font-size:20px;
 }
 
-/* CARRINHO */
+.badge {
+position:absolute;
+top:-5px;
+right:-5px;
+background:red;
+color:white;
+border-radius:50%;
+padding:5px;
+font-size:12px;
+}
+
 .cart {
-    position:fixed;
-    bottom:0;
-    width:100%;
-    background:#000;
-    padding:15px;
-    box-shadow:0 -2px 10px black;
+position:fixed;
+bottom:-100%;
+width:100%;
+background:black;
+padding:15px;
+transition:0.3s;
+max-height:80%;
+overflow:auto;
 }
-
-input {
-    width:100%;
-    padding:8px;
-    margin:5px 0;
-}
-
-.total {
-    font-size:18px;
-    margin:5px 0;
-}
+.cart.active {bottom:0;}
 
 .whatsapp {
-    width:100%;
-    padding:12px;
-    background:#25D366;
-    border:none;
-    font-size:16px;
-    color:white;
-    border-radius:8px;
+width:100%;
+padding:12px;
+background:#25D366;
+border:none;
+color:white;
+margin-top:10px;
+}
+
+input, textarea, select {
+width:100%;
+padding:8px;
+margin:5px 0;
 }
 </style>
 </head>
 
 <body>
 
-<header>🔥 LM Esfiharia</header>
+<header>
+<img src="https://i.imgur.com/5KXcV7Y.jpg">
+</header>
 
-<div id="menu"></div>
+<div class="tabs">
+<button onclick="mostrar('premium')">Premium</button>
+<button onclick="mostrar('tradicional')">Tradicionais</button>
+<button onclick="mostrar('doce')">Doces</button>
+</div>
 
-<div class="cart">
-<div id="resumo"></div>
+<div class="container" id="menu"></div>
 
-<p>Taxa de entrega: R$ 5,00</p>
-<p class="total">Total: R$ <span id="total">0</span></p>
+<div class="floating" onclick="toggleCart()">
+🛒 <span class="badge" id="count">0</span>
+</div>
+
+<div class="cart" id="cart">
+<h3>Seu Pedido</h3>
+<div id="itens"></div>
+
+<textarea id="obs" placeholder="Observação (ex: sem cebola)"></textarea>
+
+<p>Taxa: R$ 4</p>
+<p>Total: R$ <span id="total">0</span></p>
 
 <input id="nome" placeholder="Seu nome">
 <input id="endereco" placeholder="Endereço">
@@ -130,96 +128,89 @@ input {
 <option>Dinheiro</option>
 </select>
 
-<button class="whatsapp" onclick="enviarPedido()">Enviar Pedido no WhatsApp</button>
+<button class="whatsapp" onclick="enviar()">Enviar no WhatsApp</button>
 </div>
 
 <script>
-const numero = "5516996055175";
-const taxa = 5;
+const numero="5516996055175";
+const taxa=4;
 
-const produtos = [
-{nome:"Costela", preco:12, img:"https://i.imgur.com/5KXcV7Y.jpg"},
-{nome:"Carne Seca", preco:12, img:"https://i.imgur.com/5KXcV7Y.jpg"},
-{nome:"Strogonoff", preco:15, img:"https://i.imgur.com/5KXcV7Y.jpg"},
-{nome:"Frango", preco:7.5, img:"https://i.imgur.com/5KXcV7Y.jpg"},
-{nome:"Calabresa", preco:7, img:"https://i.imgur.com/5KXcV7Y.jpg"},
-{nome:"Chocolate", preco:9, img:"https://i.imgur.com/5KXcV7Y.jpg"}
-];
+const cardapio={
+premium:[["Costela",12],["Carne Seca",12],["Strogonoff Carne",15],["Strogonoff Frango",15]],
+tradicional:[["Calabresa",7],["Muçarela",7],["Frango c/ Catupiry",7.5],["Carne",7]],
+doce:[["Chocolate",9],["Banana",8],["Prestígio",8]]
+};
 
-let carrinho = {};
+let carrinho={};
 
-function carregar(){
-const menu = document.getElementById("menu");
-
-produtos.forEach((p,i)=>{
-menu.innerHTML += `
+function mostrar(cat){
+let html="";
+cardapio[cat].forEach((p,i)=>{
+html+=`
 <div class="card">
-<img src="${p.img}">
-<div class="info">
-<b>${p.nome}</b><br>
-<span class="preco">R$ ${p.preco}</span>
-</div>
-
+<div><b>${p[0]}</b><br>R$ ${p[1]}</div>
 <div class="qtd">
-<button onclick="menos(${i})">-</button>
-<span id="q${i}">0</span>
-<button onclick="mais(${i})">+</button>
+<button onclick="menos('${cat}',${i})">-</button>
+<span id="${cat}${i}">0</span>
+<button onclick="mais('${cat}',${i})">+</button>
 </div>
-</div>
-`;
+</div>`;
 });
+document.getElementById("menu").innerHTML=html;
 }
 
-function mais(i){
-carrinho[i] = (carrinho[i] || 0) + 1;
-atualizar();
-}
+function mais(c,i){carrinho[c+i]=(carrinho[c+i]||0)+1;update();}
+function menos(c,i){if(carrinho[c+i])carrinho[c+i]--;update();}
 
-function menos(i){
-if(carrinho[i]){
-carrinho[i]--;
-}
-atualizar();
-}
-
-function atualizar(){
-let total = 0;
-
-for(let i in carrinho){
-let qtd = carrinho[i];
-document.getElementById("q"+i).innerText = qtd;
-
-total += produtos[i].preco * qtd;
-}
-
-document.getElementById("total").innerText = (total + taxa).toFixed(2);
-}
-
-function enviarPedido(){
-let nome = document.getElementById("nome").value;
-let endereco = document.getElementById("endereco").value;
-let pagamento = document.getElementById("pagamento").value;
-
-let msg = `Pedido LM Esfiharia\n\n`;
-msg += `Nome: ${nome}\nEndereço: ${endereco}\n\n`;
-
-let total = 0;
-
-for(let i in carrinho){
-if(carrinho[i] > 0){
-msg += `${carrinho[i]}x ${produtos[i].nome}\n`;
-total += produtos[i].preco * carrinho[i];
+function update(){
+let total=0,count=0,itens="";
+for(let key in carrinho){
+if(carrinho[key]>0){
+let cat=key.replace(/[0-9]/g,'');
+let idx=key.replace(/\D/g,'');
+let p=cardapio[cat][idx];
+itens+=`${carrinho[key]}x ${p[0]}<br>`;
+total+=p[1]*carrinho[key];
+count+=carrinho[key];
+document.getElementById(cat+idx).innerText=carrinho[key];
 }
 }
+document.getElementById("total").innerText=(total+taxa).toFixed(2);
+document.getElementById("count").innerText=count;
+document.getElementById("itens").innerHTML=itens;
+}
 
-msg += `\nTaxa: R$ ${taxa}`;
-msg += `\nTotal: R$ ${(total+taxa).toFixed(2)}`;
-msg += `\nPagamento: ${pagamento}`;
+function toggleCart(){document.getElementById("cart").classList.toggle("active");}
+
+function enviar(){
+let nome=document.getElementById("nome").value;
+let endereco=document.getElementById("endereco").value;
+let pagamento=document.getElementById("pagamento").value;
+let obs=document.getElementById("obs").value;
+
+let msg=`Pedido LM Esfiharia\n\nNome: ${nome}\nEndereço: ${endereco}\n\n`;
+
+let total=0;
+
+for(let key in carrinho){
+if(carrinho[key]>0){
+let cat=key.replace(/[0-9]/g,'');
+let idx=key.replace(/\D/g,'');
+let p=cardapio[cat][idx];
+msg+=`${carrinho[key]}x ${p[0]}\n`;
+total+=p[1]*carrinho[key];
+}
+}
+
+msg+=`\nObs: ${obs}`;
+msg+=`\nTaxa: R$ ${taxa}`;
+msg+=`\nTotal: R$ ${(total+taxa).toFixed(2)}`;
+msg+=`\nPagamento: ${pagamento}`;
 
 window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`);
 }
 
-carregar();
+mostrar('premium');
 </script>
 
 </body>
