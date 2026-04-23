@@ -6,43 +6,68 @@
 <title>LM Esfiharia</title>
 
 <style>
-body {margin:0;font-family:Arial;background:#111;color:white;}
-header {position:fixed;top:0;width:100%;background:black;z-index:10;text-align:center;}
-header img {width:100%;max-height:160px;object-fit:cover;}
+body{margin:0;font-family:Arial;background:#111;color:#fff}
 
-.tabs {
-display:flex;
-justify-content:space-around;
-background:#222;
-padding:10px;
+header{
+background:#000;
+padding:12px;
+text-align:center;
+font-size:20px;
+font-weight:bold;
 position:sticky;
-top:160px;
-z-index:9;
-}
-.tabs button {
-background:none;
-border:none;
-color:white;
-font-size:14px;
+top:0;
+z-index:10;
 }
 
-.container {margin-top:200px;padding-bottom:100px;}
+h2{
+padding:10px;
+color:#ff9900;
+margin:0;
+}
 
-.card {
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:10px;
+padding:10px;
+}
+
+.card{
+background:#1c1c1c;
+border-radius:12px;
+overflow:hidden;
+}
+
+.card img{
+width:100%;
+height:120px;
+object-fit:cover;
+}
+
+.info{padding:10px}
+
+.nome{font-size:14px}
+.desc{font-size:12px;color:#aaa}
+
+.bottom{
 display:flex;
 justify-content:space-between;
 align-items:center;
-background:#1c1c1c;
-margin:10px;
-padding:12px;
-border-radius:10px;
+margin-top:5px;
 }
 
-.qtd button {
-width:30px;height:30px;border:none;background:#ff9900;font-weight:bold;
+.preco{color:#ff9900;font-weight:bold}
+
+.add{
+background:#ff9900;
+border:none;
+padding:5px 10px;
+border-radius:6px;
+font-weight:bold;
+cursor:pointer;
 }
 
-.floating {
+.floating{
 position:fixed;
 bottom:20px;
 right:20px;
@@ -52,59 +77,56 @@ border-radius:50%;
 font-size:20px;
 }
 
-.badge {
+.badge{
 position:absolute;
 top:-5px;
 right:-5px;
 background:red;
-color:white;
+color:#fff;
 border-radius:50%;
-padding:5px;
+padding:4px 6px;
 font-size:12px;
 }
 
-.cart {
+.cart{
 position:fixed;
-bottom:-100%;
-width:100%;
-background:black;
+right:-100%;
+top:0;
+width:300px;
+height:100%;
+background:#000;
 padding:15px;
 transition:0.3s;
-max-height:80%;
 overflow:auto;
 }
-.cart.active {bottom:0;}
+.cart.active{right:0}
 
-.whatsapp {
+.whatsapp{
 width:100%;
-padding:12px;
+padding:10px;
 background:#25D366;
 border:none;
-color:white;
+color:#fff;
 margin-top:10px;
 }
 
-input, textarea, select {
-width:100%;
-padding:8px;
-margin:5px 0;
+.tag{
+position:absolute;
+background:red;
+padding:3px 6px;
+font-size:10px;
+border-radius:5px;
+top:5px;
+left:5px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-<img src="https://i.imgur.com/5KXcV7Y.jpg">
-</header>
+<header>🔥 LM Esfiharia</header>
 
-<div class="tabs">
-<button onclick="mostrar('premium')">Premium</button>
-<button onclick="mostrar('tradicional')">Tradicionais</button>
-<button onclick="mostrar('doce')">Doces</button>
-</div>
-
-<div class="container" id="menu"></div>
+<div id="menu"></div>
 
 <div class="floating" onclick="toggleCart()">
 🛒 <span class="badge" id="count">0</span>
@@ -113,8 +135,6 @@ margin:5px 0;
 <div class="cart" id="cart">
 <h3>Seu Pedido</h3>
 <div id="itens"></div>
-
-<textarea id="obs" placeholder="Observação (ex: sem cebola)"></textarea>
 
 <p>Taxa: R$ 4</p>
 <p>Total: R$ <span id="total">0</span></p>
@@ -128,7 +148,7 @@ margin:5px 0;
 <option>Dinheiro</option>
 </select>
 
-<button class="whatsapp" onclick="enviar()">Enviar no WhatsApp</button>
+<button class="whatsapp" onclick="enviar()">Enviar Pedido</button>
 </div>
 
 <script>
@@ -136,57 +156,90 @@ const numero="5516996055175";
 const taxa=4;
 
 const cardapio={
-premium:[["Costela",12],["Carne Seca",12],["Strogonoff Carne",15],["Strogonoff Frango",15]],
-tradicional:[["Calabresa",7],["Muçarela",7],["Frango c/ Catupiry",7.5],["Carne",7]],
-doce:[["Chocolate",9],["Banana",8],["Prestígio",8]]
+premium:[
+{name:"Costela",price:12,img:"costela.jpg",top:true},
+{name:"Carne Seca",price:12,img:"carne-seca.jpg"},
+{name:"Strogonoff",price:15,img:"strogonoff.jpg"}
+],
+
+tradicional:[
+{name:"Frango",price:7.5,img:"frango.jpg"},
+{name:"Calabresa",price:7,img:"calabresa.jpg"}
+],
+
+doce:[
+{name:"Chocolate",price:9,img:"chocolate.jpg"}
+]
 };
 
 let carrinho={};
 
-function mostrar(cat){
+function carregar(){
 let html="";
-cardapio[cat].forEach((p,i)=>{
+
+for(let categoria in cardapio){
+
+html+=`<h2>${categoria.toUpperCase()}</h2>`;
+html+=`<div class="grid">`;
+
+cardapio[categoria].forEach((p,i)=>{
 html+=`
 <div class="card">
-<div><b>${p[0]}</b><br>R$ ${p[1]}</div>
-<div class="qtd">
-<button onclick="menos('${cat}',${i})">-</button>
-<span id="${cat}${i}">0</span>
-<button onclick="mais('${cat}',${i})">+</button>
+${p.top?'<div class="tag">MAIS VENDIDO</div>':''}
+<img src="${p.img}">
+<div class="info">
+<div class="nome">${p.name}</div>
+<div class="desc">Esfiha artesanal</div>
+
+<div class="bottom">
+<span class="preco">R$ ${p.price}</span>
+<button class="add" onclick="add('${categoria}',${i})">+</button>
 </div>
-</div>`;
+</div>
+</div>
+`;
 });
+
+html+=`</div>`;
+}
+
 document.getElementById("menu").innerHTML=html;
 }
 
-function mais(c,i){carrinho[c+i]=(carrinho[c+i]||0)+1;update();}
-function menos(c,i){if(carrinho[c+i])carrinho[c+i]--;update();}
+function add(cat,i){
+let key=cat+"-"+i;
+carrinho[key]=(carrinho[key]||0)+1;
+update();
+}
 
 function update(){
 let total=0,count=0,itens="";
+
 for(let key in carrinho){
 if(carrinho[key]>0){
-let cat=key.replace(/[0-9]/g,'');
-let idx=key.replace(/\D/g,'');
-let p=cardapio[cat][idx];
-itens+=`${carrinho[key]}x ${p[0]}<br>`;
-total+=p[1]*carrinho[key];
+
+let [cat,i]=key.split("-");
+let p=cardapio[cat][i];
+
+itens+=`${carrinho[key]}x ${p.name}<br>`;
+total+=p.price*carrinho[key];
 count+=carrinho[key];
-document.getElementById(cat+idx).innerText=carrinho[key];
 }
 }
+
 document.getElementById("total").innerText=(total+taxa).toFixed(2);
 document.getElementById("count").innerText=count;
 document.getElementById("itens").innerHTML=itens;
 }
 
-function toggleCart(){document.getElementById("cart").classList.toggle("active");}
+function toggleCart(){
+document.getElementById("cart").classList.toggle("active");
+}
 
 function enviar(){
 let nome=document.getElementById("nome").value;
 let endereco=document.getElementById("endereco").value;
 let pagamento=document.getElementById("pagamento").value;
-let obs=document.getElementById("obs").value;
 
 let msg=`Pedido LM Esfiharia\n\nNome: ${nome}\nEndereço: ${endereco}\n\n`;
 
@@ -194,15 +247,14 @@ let total=0;
 
 for(let key in carrinho){
 if(carrinho[key]>0){
-let cat=key.replace(/[0-9]/g,'');
-let idx=key.replace(/\D/g,'');
-let p=cardapio[cat][idx];
-msg+=`${carrinho[key]}x ${p[0]}\n`;
-total+=p[1]*carrinho[key];
+let [cat,i]=key.split("-");
+let p=cardapio[cat][i];
+
+msg+=`${carrinho[key]}x ${p.name}\n`;
+total+=p.price*carrinho[key];
 }
 }
 
-msg+=`\nObs: ${obs}`;
 msg+=`\nTaxa: R$ ${taxa}`;
 msg+=`\nTotal: R$ ${(total+taxa).toFixed(2)}`;
 msg+=`\nPagamento: ${pagamento}`;
@@ -210,7 +262,7 @@ msg+=`\nPagamento: ${pagamento}`;
 window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`);
 }
 
-mostrar('premium');
+carregar();
 </script>
 
 </body>
